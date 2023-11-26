@@ -64,7 +64,7 @@ if __name__ == "__main__":
              """
 
     with st.container():
-        __, logo, title, __ = st.columns([2, 2, 6, 2])
+        __, logo, title, __ = st.columns([2, 4, 6, 2])
         with logo:
             st.image(
                 "assets/LOGO-UNRAM-1.png",
@@ -96,16 +96,13 @@ if __name__ == "__main__":
     menu_option = st.sidebar.selectbox("", options=["Hitung TPM", "Managemen Pasien"])
 
     with st.sidebar.expander(
-        label=":grey[Tutorial Penggunaan] :fast_forward: ",
+        label=":white[Tutorial Hitung TPM 🧮]",
         expanded=False,
     ):
         halaman = """
             <!DOCTYPE html>
             <html lang="en">
             <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Instruksi Penggunaan</title>
                 <style>
                     body {
                         font-family: 'Arial', sans-serif;
@@ -162,6 +159,45 @@ if __name__ == "__main__":
             """
         st.markdown(
             halaman,
+            unsafe_allow_html=True,
+        )
+    with st.sidebar.expander(
+        label=":white[Tutorial Managemen Pasien 🛌]",
+        expanded=False,
+    ):
+        halaman2 = """
+            
+            <body>
+                <div class="instructions-container">
+                    <p class="text-tutorial">1. Sebelum menambahkan atau mengedit data pasien, perhatikan daftar pasien.</p>
+                    <p class="text-tutorial" style="margin-top: 10%;">2. Cara menambahkan data pasien.</p>
+                    <p style="text-align: center;"><img style="width: 250px; " src="https://archive.org/download/tambah_20231126/tambah.png"/></p>
+                    <p class="text-tutorial">a. Klik Tambah pasien ➕</p>
+                    <p class="text-tutorial">b. Masukkan nama pasien, nomor kamar, dan TPM</p>
+                    <p style="text-align: center;"><img style="width: 250px; " src="https://archive.org/download/tambah_20231126/Data_pasien.png"/></p>
+                    <p class="text-tutorial">c . Jika sudah, klik simpan agar data tersimpan </p>
+                    <p style="text-align: center;"><img style="width: 250px; " src="https://archive.org/download/tambah_20231126/save.png"/></p>
+                    <p class="text-tutorial" style="margin-top: 10%;">3. Cara mengubah TPM</p>
+                    <p style="text-align: center;"><img style="width: 250px; " src="https://archive.org/download/tambah_20231126/ubah_tpm.png"/></p>
+                    <p class="text-tutorial">a. Pilid ID Pasien yang ingin diedit</p>
+                    <p style="text-align: center;"><img style="width: 250px; " src="https://archive.org/download/tambah_20231126/pilih_id.png"/></p>
+                    <p class="text-tutorial">b. Masukkan TPM baru</p>
+                    <p style="text-align: center;"><img style="width: 250px; " src="https://archive.org/download/tambah_20231126/tpm_baru.png"/></p>
+                    <p class="text-tutorial">c. Jika sudah, klik simpan agar data tersimpan</p>
+                    <p style="text-align: center;"><img style="width: 250px; " src="https://archive.org/download/tambah_20231126/save.png"/></p>
+                    <p class="text-tutorial" style="margin-top: 10%;">4. Cara hapus data pasien</p>
+                    <p style="text-align: center;"><img style="width: 250px; " src="https://archive.org/download/tambah_20231126/hapus.png"/></p>
+                    <p class="text-tutorial">a. Pilid ID Pasien yang ingin diedit</p>
+                    <p style="text-align: center;"><img style="width: 250px; " src="https://archive.org/download/tambah_20231126/pilih_id.png"/></p>
+                    <p class="text-tutorial">b. Klik hapus, maka data pasien akan dihapus</p>
+                    <p style="text-align: center;"><img style="width: 250px; " src="https://archive.org/download/tambah_20231126/Hapus_pasien.png"/></p>
+                    </div>
+
+            </body>
+            </html>
+            """
+        st.markdown(
+            halaman2,
             unsafe_allow_html=True,
         )
 
@@ -412,9 +448,19 @@ if __name__ == "__main__":
 
         st.markdown("#####")
         if db_size >= 0:
-            option = st.sidebar.selectbox("Pilih ID Pasien ", id_pasiens)
+            st.sidebar.markdown(
+                """
+                <div style="display: flex; 
+                    justify-content: center;
+                    margin-bottom: 10px">
+                    <h4 style="text-align: center;">
+                    Menu</h4>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
             with st.sidebar.expander(
-                label=":grey[Tambah Pasien] ➕ ",
+                label=":white[Tambah Pasien ➕] ",
                 expanded=False,
             ):
                 nama_pasien = st.text_input("Nama Pasien ", "Rizaldy")
@@ -436,15 +482,16 @@ if __name__ == "__main__":
                         st.warning("Something went wrong! Try Again.", icon="⚠️")
                 st.markdown("####")
 
-        # Display column names
+            # Display column names
+            option = st.sidebar.selectbox("Pilih ID Pasien ", id_pasiens)
         c.execute("PRAGMA table_info(patient_data)")
         columns = c.fetchall()
         with st.sidebar.expander(
-            label=":grey[Ubah TPM] ⚡️ ",
+            label=":white[Ubah TPM ⚡️]",
             expanded=False,
         ):
             new_tpm = st.text_input("TPM Baru", "20")
-            if st.button("Ubah TPM ⚡️", use_container_width=True):
+            if st.button("Simpan ", use_container_width=True):
                 try:
                     update_tpm(option, new_tpm)
                     st.success(f"{option}'s tpm is updated to {new_tpm}!", icon="✅")
@@ -454,7 +501,7 @@ if __name__ == "__main__":
                     st.info("Database is Empty.", icon="ℹ️")
 
         with st.sidebar.expander(
-            label=":grey[Hapus Pasien] ❌ ",
+            label=":white[Hapus Pasien ❌]",
             expanded=False,
         ):
             if st.button("Hapus Pasien ❌", use_container_width=True):
