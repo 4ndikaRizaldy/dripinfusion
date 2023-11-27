@@ -336,7 +336,7 @@ if __name__ == "__main__":
                     # Display the output video
                     output_video_path = os.path.join(
                         "inference", "output", video_file_buffer.name
-                    )  # Update this path accordingly
+                    )
                     if os.path.exists(output_video_path):
                         st.video(open(output_video_path, "rb").read())
                     status.markdown(
@@ -365,12 +365,13 @@ if __name__ == "__main__":
         c = conn.cursor()
         c.execute(
             """CREATE TABLE if not exists patient_data (
-                            nama_pasien varchar(50) not null,
-                            id_pasien integer not null,
-                            no_kamar varchar(10) not null,
-                            tpm varchar(10) not null,
-                            primary key(id_pasien)
-                        );"""
+                    id_pasien integer not null,
+                    nama_pasien varchar(50) not null,
+                    alamat_pasien varchar(100) not null,
+                    no_kamar varchar(10) not null,
+                    tpm varchar(10) not null,
+                    primary key(id_pasien)
+                );"""
         )
 
         def insert_patient_data(patient):
@@ -378,10 +379,11 @@ if __name__ == "__main__":
                 raise ValueError(f"Nomor Kamar {patient.room} is already in use.")
             with conn:
                 c.execute(
-                    "insert into patient_data values (:name, :id, :room, :tpm)",
+                    "insert into patient_data values (:id, :name, :alamat_pasien, :room, :tpm)",
                     {
-                        "name": patient.name,
                         "id": patient.id,
+                        "name": patient.name,
+                        "alamat_pasien": patient.alamat_pasien,
                         "room": patient.room,
                         "tpm": patient.tpm,
                     },
@@ -398,7 +400,7 @@ if __name__ == "__main__":
         def get_patient_data_by_id(id_pasien):
             with conn:
                 c.execute(
-                    "select nama_pasien, id_pasien, no_kamar, tpm FROM patient_data where id_pasien = :id;",
+                    "select id_pasien, nama_pasien, alamat_pasien, no_kamar, tpm FROM patient_data where id_pasien = :id;",
                     {"id": id_pasien},
                 )
                 return c.fetchone()
@@ -417,9 +419,10 @@ if __name__ == "__main__":
                 )
 
         class Patient:
-            def __init__(self, name, room, tpm):
-                self.name = name
+            def __init__(self, name, alamat_pasien, room, tpm):
                 self.id = None
+                self.name = name
+                self.alamat_pasien = alamat_pasien
                 self.room = room
                 self.tpm = tpm
 
@@ -463,19 +466,21 @@ if __name__ == "__main__":
                 label=":white[Tambah Pasien ➕] ",
                 expanded=False,
             ):
-                nama_pasien = st.text_input("Nama Pasien ", "Rizaldy")
+                nama_pasien = st.text_input("Nama Pasien ", "Ali")
+                alamat_pasien = st.text_input("Alamat", "Mataram")
                 no_kamar = st.text_input("Nomor Kamar ", "1")
                 tpm = st.text_input("TPM", "20")
                 st.markdown("####")
                 if st.button("Simpan ⏬", use_container_width=True):
                     try:
-                        patient = Patient(nama_pasien, no_kamar, tpm)
+                        patient = Patient(nama_pasien, alamat_pasien, no_kamar, tpm)
                         patient.id = db_size + 1
                         insert_patient_data(patient)
                         st.success(
                             f"Patient {nama_pasien}'s data is added to the Database!",
                             icon="✅",
                         )
+                        st.rerun()
                     except ValueError as e:
                         st.warning(f"Error: {e}", icon="⚠️")
                     except:
@@ -484,37 +489,59 @@ if __name__ == "__main__":
 
             # Display column names
             option = st.sidebar.selectbox("Pilih ID Pasien ", id_pasiens)
-        c.execute("PRAGMA table_info(patient_data)")
-        columns = c.fetchall()
-        with st.sidebar.expander(
-            label=":white[Ubah TPM ⚡️]",
-            expanded=False,
-        ):
-            new_tpm = st.text_input("TPM Baru", "20")
-            if st.button("Simpan ", use_container_width=True):
-                try:
-                    update_tpm(option, new_tpm)
-                    st.success(f"{option}'s tpm is updated to {new_tpm}!", icon="✅")
-                except:
-                    st.info("Error updating patient tpm.", icon="ℹ️")
-                else:
-                    st.info("Database is Empty.", icon="ℹ️")
+            c.execute("PRAGMA table_info(patient_data)")
+            columns = c.fetchall()
+            with st.sidebar.expander(
+                label=":white[Edit Data Pasien ✏️]",
+                expanded=False,
+            ):
+                edited_name = st.text_input(
+                    "Nama Pasien Baru", get_patient_data_by_id(option)[0]
+                )
+                edited_alamat_pasien = st.text_input(
+                    "Alamat Baru", get_patient_data_by_id(option)[2]
+                )
+                edited_room = st.text_input(
+                    "Nomor Kamar Baru", get_patient_data_by_id(option)[1]
+                )
+                edited_tpm = st.text_input("TPM Baru", get_patient_data_by_id(option)[3])
 
-        with st.sidebar.expander(
-            label=":white[Hapus Pasien ❌]",
-            expanded=False,
-        ):
-            if st.button("Hapus Pasien ❌", use_container_width=True):
-                try:
-                    remove_patient_data(option)
-                    st.success(
-                        f"Patient {option}'s data is removed from Database!",
-                        icon="✅",
-                    )
-                except:
-                    st.info("Error deleting patient data.", icon="ℹ️")
-                else:
-                    st.info("Database is Empty.", icon="ℹ️")
+                if st.button("Simpan ", use_container_width=True):
+                    try:
+                        with conn:
+                            c.execute(
+                                "update patient_data set nama_pasien = :name, no_kamar = :room, tpm = :tpm, alamat_pasien = :alamat_pasien where id_pasien = :id",
+                                {
+                                    "id": option,
+                                    "name": edited_name,
+                                    "alamat_pasien": edited_alamat_pasien,
+                                    "room": edited_room,
+                                    "tpm": edited_tpm,
+                                },
+                            )
+                        st.success(f"{option}'s data is updated!", icon="✅")
+                        st.rerun()
+                    except:
+                        st.warning("Error updating patient data.", icon="ℹ️")
+                    else:
+                        st.info("Database is Updated.", icon="ℹ️")
+
+            with st.sidebar.expander(
+                label=":white[Hapus Pasien ❌]",
+                expanded=False,
+            ):
+                if st.button("Hapus Pasien ❌", use_container_width=True):
+                    try:
+                        remove_patient_data(option)
+                        st.success(
+                            f"Patient {option}'s data is removed from Database!",
+                            icon="✅",
+                        )
+                        st.rerun()
+                    except:
+                        st.info("Error deleting patient data.", icon="ℹ️")
+                    else:
+                        st.info("Database is Empty.", icon="ℹ️")
 
     # FOOTER
     footer_html = """
