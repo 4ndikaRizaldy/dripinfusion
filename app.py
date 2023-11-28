@@ -35,7 +35,7 @@ if __name__ == "__main__":
         
     }
         MainMenu {visibility: hidden;}
-        # footer {visibility: hidden;}
+        footer  {visibility: hidden;}
         # header {visibility: hidden;}
     </style>
     """
@@ -480,14 +480,33 @@ if __name__ == "__main__":
                             f"Patient {nama_pasien}'s data is added to the Database!",
                             icon="✅",
                         )
-                        st.rerun()
+
                     except ValueError as e:
                         st.warning(f"Error: {e}", icon="⚠️")
-                    except:
-                        st.warning("Something went wrong! Try Again.", icon="⚠️")
+                    time.sleep(3)
+                    st.rerun()
                 st.markdown("####")
 
-            # Display column names
+            search_query = st.sidebar.text_input("Cari Data Pasien")
+            if search_query:
+                # Fetch all data from the patient_data table
+                c.execute("SELECT * FROM patient_data")
+                column_names = [col[0] for col in c.description]
+                results = c.fetchall()
+                df_results = pd.DataFrame(results, columns=column_names)
+                # Apply filter based on the search query
+                filtered_df = df_results[
+                    df_results.apply(
+                        lambda row: any(
+                            str(val).lower().find(search_query.lower()) != -1
+                            for val in row
+                        ),
+                        axis=1,
+                    )
+                ]
+                # Display the filtered DataFrame
+                st.sidebar.table(filtered_df)
+
             option = st.sidebar.selectbox("Pilih ID Pasien ", id_pasiens)
             c.execute("PRAGMA table_info(patient_data)")
             columns = c.fetchall()
@@ -496,21 +515,23 @@ if __name__ == "__main__":
                 expanded=False,
             ):
                 edited_name = st.text_input(
-                    "Nama Pasien Baru", get_patient_data_by_id(option)[0]
+                    "Nama Pasien Baru", get_patient_data_by_id(option)[1]
                 )
                 edited_alamat_pasien = st.text_input(
                     "Alamat Baru", get_patient_data_by_id(option)[2]
                 )
                 edited_room = st.text_input(
-                    "Nomor Kamar Baru", get_patient_data_by_id(option)[1]
+                    "Nomor Kamar Baru", get_patient_data_by_id(option)[3]
                 )
-                edited_tpm = st.text_input("TPM Baru", get_patient_data_by_id(option)[3])
+                edited_tpm = st.text_input(
+                    "TPM Baru", get_patient_data_by_id(option)[4]
+                )
 
                 if st.button("Simpan ", use_container_width=True):
                     try:
                         with conn:
                             c.execute(
-                                "update patient_data set nama_pasien = :name, no_kamar = :room, tpm = :tpm, alamat_pasien = :alamat_pasien where id_pasien = :id",
+                                "update patient_data set nama_pasien = :name, alamat_pasien = :alamat_pasien, no_kamar = :room, tpm = :tpm where id_pasien = :id",
                                 {
                                     "id": option,
                                     "name": edited_name,
@@ -545,8 +566,17 @@ if __name__ == "__main__":
 
     # FOOTER
     footer_html = """
-        <footer style="text-align: center; margin-top: 20px;">
-            &copy; 2023 Andika Rizaldy. All rights reserved.
-        </footer>
+        <style>
+        .footer {
+            position: relative;
+            bottom: 0;
+            text-align: center;
+            justify-content: center;
+            padding: 10px;
+        }
+        </style>
+        <div class="footer">
+            <p>&copy; 2023 Andika Rizaldy. All rights reserved.</p>
+        </div>
     """
     st.markdown(footer_html, unsafe_allow_html=True)
