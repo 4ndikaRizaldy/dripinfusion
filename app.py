@@ -93,7 +93,7 @@ if __name__ == "__main__":
     """,
         unsafe_allow_html=True,
     )
-    menu_option = st.sidebar.selectbox("", options=["Hitung TPM", "Managemen Pasien"])
+    menu_option = st.sidebar.selectbox("", options=["Hitung TPM", "Manajemen Pasien"])
 
     with st.sidebar.expander(
         label=":white[Tutorial Hitung TPM 🧮]",
@@ -162,7 +162,7 @@ if __name__ == "__main__":
             unsafe_allow_html=True,
         )
     with st.sidebar.expander(
-        label=":white[Tutorial Managemen Pasien 🛌]",
+        label=":white[Tutorial Manajemen Pasien 🛌]",
         expanded=False,
     ):
         halaman2 = """
@@ -202,6 +202,14 @@ if __name__ == "__main__":
         )
 
     if menu_option == "Hitung TPM":
+        # Pilihan Model
+        model_src = st.sidebar.selectbox("Select Model",["🩺 Drip Infusion" ,"🩺 Set Anak Background Putih ◻️", "🩺 Set Anak Background Hitam ⬛"], index=None, placeholder="Pilih model...",)
+        if model_src == "🩺 Drip Infusion":
+            models = "bestv6.pt"
+        if model_src == "🩺 Set Anak Background Putih ◻️":
+            models = "model/sabp.pt"
+        if model_src == "🩺 Set Anak Background Hitam ⬛":
+            models = "model/sabh.pt"
         st.sidebar.markdown(
             """
         <div style="display: flex; 
@@ -248,6 +256,15 @@ if __name__ == "__main__":
             unsafe_allow_html=True,
         )
         status = st.empty()
+        # st.text(
+        #     "Setup complete. Using torch %s %s"
+        #     % (
+        #         torch.__version__,
+        #         torch.cuda.get_device_properties(0)
+        #         if torch.cuda.is_available()
+        #         else "CPU",
+        #     )
+        # )
         tetesan, timer, fps = st.columns(3)
         # Result
         with tetesan:
@@ -329,7 +346,7 @@ if __name__ == "__main__":
                     stframe = st.empty()
                     opt = parse_opt()
                     reset()
-                    # opt.yolo_model = model_src
+                    opt.yolo_model = models
                     opt.conf_thres = confidence
                     opt.source = f"videos/{video_file_buffer.name}"
 
@@ -360,7 +377,7 @@ if __name__ == "__main__":
                     if stop_button:
                         st.stop()
 
-    if menu_option == "Managemen Pasien":
+    if menu_option == "Manajemen Pasien":
         conn = sqlite3.connect("patient.db")
         c = conn.cursor()
         c.execute(
@@ -544,8 +561,8 @@ if __name__ == "__main__":
                         st.rerun()
                     except:
                         st.warning("Error updating patient data.", icon="ℹ️")
-                    else:
-                        st.info("Database is Updated.", icon="ℹ️")
+                else:
+                    st.info("Database is Updated.", icon="ℹ️")
 
             with st.sidebar.expander(
                 label=":white[Hapus Pasien ❌]",
@@ -561,8 +578,8 @@ if __name__ == "__main__":
                         st.rerun()
                     except:
                         st.info("Error deleting patient data.", icon="ℹ️")
-                    else:
-                        st.info("Database is Empty.", icon="ℹ️")
+                else:
+                    st.info("Database is Empty.", icon="ℹ️")
 
     # FOOTER
     footer_html = """

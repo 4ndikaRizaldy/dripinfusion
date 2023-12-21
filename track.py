@@ -245,7 +245,7 @@ def detect(opt, stframe, tetesan, timer, line, fps_rate, class_id):
                             int(bboxes[0] + (bboxes[2] - bboxes[0]) / 2),
                             int(bboxes[1] + (bboxes[3] - bboxes[1]) / 2),
                         )
-                        cv2.circle(im0, center_coordinates, 6, (255, 191, 0), -1)
+                        cv2.circle(im0, center_coordinates, 6, (0, 0, 255), -1)
                         count_obj(bboxes, w, h, id, names[c], line_pos)
                         # tetesan.markdown(f"<h3 style='text-align:center;'>{id}</h3>", unsafe_allow_html=True)
 
@@ -325,15 +325,15 @@ def detect(opt, stframe, tetesan, timer, line, fps_rate, class_id):
 
                 stframe.image(im0, channels="BGR", use_column_width=True)
                 tetesan.markdown(
-                    f"<h3 style='text-align:center;'>{str(len(data_tetesan))}</h3>",
+                    f"<h3 style='text-align:center; color:white;'>{str(len(data_tetesan))}</h3>",
                     unsafe_allow_html=True,
                 )
                 timer.write(
-                    f"<h3 style='text-align:center;'> {detection_time:.2f} </h3>",
+                    f"<h3 style='text-align:center; color:white;'> {detection_time:.2f} </h3>",
                     unsafe_allow_html=True,
                 )
                 fps_rate.markdown(
-                    f"<h3 style='text-align:center;'> {fps_} </h3>",
+                    f"<h3 style='text-align:center; color:white;'> {fps_} </h3>",
                     unsafe_allow_html=True,
                 )
 
@@ -353,16 +353,31 @@ def detect(opt, stframe, tetesan, timer, line, fps_rate, class_id):
 
 def count_obj(box, w, h, id, label, line_pos):
     global data_tetesan, already
+    global counter  # tambahkan variabel counter
+
     center_coordinates = (
         int(box[0] + (box[2] - box[0]) / 2),
         int(box[1] + (box[3] - box[1]) / 2),
     )
-    # classify one time per id
+
+    # Jika objek terdeteksi di atas garis
     if center_coordinates[1] > (h * line_pos):
+        # Reset counter jika objek terdeteksi
+        counter = 0
+
+        # classify satu kali per ID
         if id not in already:
             already.append(id)
             if label == "tetesan" and id not in data_tetesan:
                 data_tetesan.append(id)
+    else:
+        # Jika objek tidak terdeteksi, tingkatkan counter
+        counter += 1
+
+        # Jika counter mencapai 5, reset already dan data_tetesan
+        if counter >= 5:
+            already = []
+            data_tetesan = []
 
 
 # reset id in data
