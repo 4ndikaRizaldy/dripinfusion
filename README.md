@@ -1,6 +1,6 @@
 ﻿# Monitoring Drip Infusion using YOLOv5 and Deep SORT
 
-![Demo image](Resources/demo.png)
+![demo](Resources/demo.png)
 
 ## Introduction
 
