@@ -43,9 +43,9 @@ pip install streamlit
 
 2. Setting _Custom classes_, _Confidence_ and _Line position_
 
-![Settings](Resources/setting.jpg)
+![settings](resources/settings.png)
 
-- Custom classes: choose classes you want to detect
+- Models: Models for object detection
 
 - Confidence: the probability that one object belongs to one class
 
@@ -55,4 +55,4 @@ pip install streamlit
 
 ## Result
 
-![demo](Resources/new_demo.gif)
+![demo](Resources/demo.gif)
