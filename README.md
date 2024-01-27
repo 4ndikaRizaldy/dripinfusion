@@ -55,4 +55,4 @@ pip install streamlit
 
 ## Result
 
-![demo](Resources/demo.gif)
+![demoproject](resources/demo.gif)
